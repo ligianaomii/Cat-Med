@@ -12,28 +12,35 @@ class GameScene: SKScene {
     
     var mouth: SKSpriteNode!
     var med: SKSpriteNode!
+    var successBallon:SKSpriteNode!
+    var failBallon:SKSpriteNode!
+    
     
     var scoreLabel: SKLabelNode!
     
     var score: Int = 0 {
-            didSet {
-                // Atualizar o texto da label de pontuação sempre que o valor da pontuação for alterado
-                scoreLabel.text = "Score: \(score)"
-            }
+        didSet {
+            // Atualizar o texto da label de pontuação sempre que o valor da pontuação for alterado
+            scoreLabel.text = "Score: \(score)"
         }
+    }
     
     var isMouthOpen = false
     
     override func didMove(to view: SKView) {
         mouth = childNode(withName: "mouth") as? SKSpriteNode
         med = childNode(withName: "med") as? SKSpriteNode
+        successBallon = childNode(withName: "success") as? SKSpriteNode
+        failBallon = childNode(withName: "fail") as? SKSpriteNode
+        
         scoreLabel = childNode(withName: "scoreLabel") as? SKLabelNode
         
         
         med.userData = ["initialPosition": med.position]
         
-        
         self.mouth.isHidden = true
+        self.successBallon.isHidden = true
+        self.failBallon.isHidden = true
         
         openMouth()
         
@@ -45,8 +52,31 @@ class GameScene: SKScene {
         
         if isMouthOpen {
             increaseScore(by: 1)
+            
+            self.successBallon.isHidden = false
+            
+            
+            let hideAction = SKAction.sequence([
+                SKAction.wait(forDuration: 0.5), // Tempo que o successBallon será exibido
+                SKAction.run {
+                    self.successBallon.isHidden = true
+                }
+            ])
+            successBallon.run(hideAction)
+            
         } else if !isMouthOpen {
             score = 0
+            
+            self.failBallon.isHidden = false
+            
+            let hideAction = SKAction.sequence([
+                SKAction.wait(forDuration: 0.5), // Tempo que o successBallon será exibido
+                SKAction.run {
+                    self.failBallon.isHidden = true
+                }
+            ])
+            failBallon.run(hideAction)
+            
         }
         
         
@@ -86,19 +116,19 @@ class GameScene: SKScene {
     }
     
     func moveMedTowardsMouth() {
-            let mouthPosition = mouth.position
-            let dx = mouthPosition.x - med.position.x
-            let dy = mouthPosition.y - med.position.y
-            let distance = sqrt(dx * dx + dy * dy)
-            let desiredSpeed: CGFloat = 700.0
-            let duration = TimeInterval(distance / desiredSpeed)
-            let moveAction = SKAction.move(to: mouthPosition, duration: duration)
-            let sequence = SKAction.sequence([moveAction])
-            med.run(sequence)
-            
-            // Aumentar a pontuação quando o jogador acerta a boca
-            
-        }
+        let mouthPosition = mouth.position
+        let dx = mouthPosition.x - med.position.x
+        let dy = mouthPosition.y - med.position.y
+        let distance = sqrt(dx * dx + dy * dy)
+        let desiredSpeed: CGFloat = 800.0
+        let duration = TimeInterval(distance / desiredSpeed)
+        let moveAction = SKAction.move(to: mouthPosition, duration: duration)
+        let sequence = SKAction.sequence([moveAction])
+        med.run(sequence)
+        
+        // Aumentar a pontuação quando o jogador acerta a boca
+        
+    }
     
     
     func openMouth() {
@@ -148,9 +178,9 @@ class GameScene: SKScene {
     }
     
     func increaseScore(by amount: Int) {
-            // Aumentar a pontuação
-            score += amount
-        }
+        // Aumentar a pontuação
+        score += amount
+    }
     
 }
 
