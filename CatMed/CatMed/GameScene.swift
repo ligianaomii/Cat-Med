@@ -21,7 +21,9 @@ class GameScene: SKScene {
         
         med.userData = ["initialPosition": med.position]
         
-        isMouthOpen = true
+        self.mouth.isHidden = true
+        
+        openMouth()
         
     }
     
@@ -61,7 +63,7 @@ class GameScene: SKScene {
     
     
     override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
+    
     }
     
     func moveMedTowardsMouth() {
@@ -71,17 +73,17 @@ class GameScene: SKScene {
         let dy = mouthPosition.y - med.position.y
         
         let distance = sqrt(dx * dx + dy * dy)
- 
+        
         let desiredSpeed: CGFloat = 700.0
         
         let duration = TimeInterval(distance / desiredSpeed)
-
+        
         let moveAction = SKAction.move(to: mouthPosition, duration: duration)
-    
+        
         let collisionAction = SKAction.run {
-    
-            if self.med.intersects(self.mouth) {
             
+            if self.med.intersects(self.mouth) {
+                
                 print("Med collided with the mouth!")
                 self.med.isHidden = true
                 
@@ -98,16 +100,35 @@ class GameScene: SKScene {
     func openMouth() {
         let randomDuration = TimeInterval.random(in: 0.4...2.0)
         
+        
         let waitAction = SKAction.wait(forDuration: randomDuration)
         
-            let openAction = SKAction.run {
-                mouth.isHidden = false
-            }
-            
-            let sequence = SKAction.sequence([waitAction, openAction])
-            
-            mouth.run(sequence)
+        let openAction = SKAction.run {
+            self.mouth.isHidden = false
+            self.isMouthOpen = true
+            self.closeMouth()
         }
+        
+        let sequence = SKAction.sequence([waitAction, openAction])
+        let openLoop = SKAction.repeatForever(sequence)
+        mouth.run(openLoop)
+        
+    }
+    
+    func closeMouth() {
+        let randomDuration = TimeInterval.random(in: 1.0...2.0)
+        
+        let waitAction = SKAction.wait(forDuration: randomDuration)
+        
+        let openAction = SKAction.run {
+            self.mouth.isHidden = true
+            self.isMouthOpen = false
+        }
+        
+        let sequence = SKAction.sequence([waitAction, openAction])
+        
+        mouth.run(sequence)
+    }
     
 }
 
