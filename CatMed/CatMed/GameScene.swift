@@ -10,62 +10,42 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
+    var mouth: SKSpriteNode!
+    var med: SKSpriteNode!
+    
+    var isMouthOpen = false
     
     override func didMove(to view: SKView) {
+        mouth = childNode(withName: "mouth") as? SKSpriteNode
+        med = childNode(withName: "med") as? SKSpriteNode
         
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
-        }
+        med.userData = ["initialPosition": med.position]
         
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
+        self.mouth.isHidden = true
         
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
-            
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
-        }
+        openMouth()
+        
     }
     
-    
     func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
+        
+        
+        if isMouthOpen {
+            moveMedTowardsMouth()
         }
+        
+        
     }
     
     func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
-        }
+        
     }
     
     func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
-        }
+        
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-        }
-        
         for t in touches { self.touchDown(atPoint: t.location(in: self)) }
     }
     
@@ -83,7 +63,72 @@ class GameScene: SKScene {
     
     
     override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
+    
     }
+    
+    func moveMedTowardsMouth() {
+        let mouthPosition = mouth.position
+        
+        let dx = mouthPosition.x - med.position.x
+        let dy = mouthPosition.y - med.position.y
+        
+        let distance = sqrt(dx * dx + dy * dy)
+        
+        let desiredSpeed: CGFloat = 700.0
+        
+        let duration = TimeInterval(distance / desiredSpeed)
+        
+        let moveAction = SKAction.move(to: mouthPosition, duration: duration)
+        
+        let collisionAction = SKAction.run {
+            
+            if self.med.intersects(self.mouth) {
+                
+                print("Med collided with the mouth!")
+                self.med.isHidden = true
+                
+            }
+        }
+        
+        // Create a sequence of actions: move towards mouth, then check for collision
+        let sequence = SKAction.sequence([moveAction, collisionAction])
+        
+        // Run the sequence on the med node, and repeat forever
+        med.run(SKAction.repeatForever(sequence))
+    }
+    
+    func openMouth() {
+        let randomDuration = TimeInterval.random(in: 0.4...2.0)
+        
+        
+        let waitAction = SKAction.wait(forDuration: randomDuration)
+        
+        let openAction = SKAction.run {
+            self.mouth.isHidden = false
+            self.isMouthOpen = true
+            self.closeMouth()
+        }
+        
+        let sequence = SKAction.sequence([waitAction, openAction])
+        let openLoop = SKAction.repeatForever(sequence)
+        mouth.run(openLoop)
+        
+    }
+    
+    func closeMouth() {
+        let randomDuration = TimeInterval.random(in: 1.0...2.0)
+        
+        let waitAction = SKAction.wait(forDuration: randomDuration)
+        
+        let openAction = SKAction.run {
+            self.mouth.isHidden = true
+            self.isMouthOpen = false
+        }
+        
+        let sequence = SKAction.sequence([waitAction, openAction])
+        
+        mouth.run(sequence)
+    }
+    
 }
-// mudança teste
+
